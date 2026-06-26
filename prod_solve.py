@@ -1,5 +1,49 @@
-import pandas as pd
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Jun 26 17:15:10 2026
+
+@author: mb.aliev
+"""
+
+import warnings
+warnings.filterwarnings("ignore")
+
+# Standard python libraries
+import os
+import re
+import datetime
+import time
+
+# Installed libraries
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import pyodbc 
+
+def DB_request(sql):
+    
+    server = 'trading-db.ahml1.ru'
+    database = 'LIQUIDITY'
+    
+    conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + server + ';' \
+                                          'DATABASE=' + database + ';Trusted_connection=yes')
+    cursor = conn.cursor()
+
+    t1 = time.time()
+    
+    try:
+        df = pd.read_sql(sql, conn)
+        print('Request completed: ', time.time() - t1)
+    except Exception as e:
+        print('Request execution error:', e)
+        
+    cursor.close()
+    conn.close()
+    
+    df.columns = df.columns.str.lower()
+    df['date'] = pd.to_datetime(df['date'])
+    
+    return df
 
 # -------------------------------------------------------
 # 1. Загрузка реальных данных
@@ -7,9 +51,26 @@ import numpy as np
 # Предполагаем, что у тебя есть CSV/Excel файлы
 # Формат: date, term_bucket, rate, amount
 
-df_train = pd.read_csv("data/auctions_2023.csv", parse_dates=["date"])
-df_eval = pd.read_csv("data/auctions_2024.csv", parse_dates=["date"])
-df_benchmark = pd.read_csv("data/cb_curve_2024.csv", parse_dates=["date"])
+df1 = """
+        select [date], TERM_AVG term_bucket, spread rate, amount
+        from [LIQUIDITY].[qt].prev_spreads_from_auc_V2_2_WithPERC 
+        where 1 = 1
+        order by [date], term_avg
+"""
+df1 = DB_request(df1)
+df2 = """
+        select [date], TERM_AVG term_bucket, spread rate
+        from [LIQUIDITY].[qt].[spreads_from_auc_V2] 
+        where 1 = 1
+        and [date] > '2026-06-01'
+        order by [date], term_avg
+"""
+df2 = DB_request(df2)
+
+
+df_train = df1[df1['date'] < '2026-06-01']
+df_eval = df1[df1['date'] >= '2026-06-01']
+df_benchmark = df2
 
 # -------------------------------------------------------
 # 2. Проверка и очистка
@@ -65,7 +126,7 @@ interpolator = YieldCurveInterpolator(
     engine_params={
         "n_components": 3,
         "max_iter": 200,
-        "tolerance": 1e-7,
+        "tol": 1e-7,
         "relaxation": 0.8,
     },
     buckets=BUCKETS,
@@ -256,3 +317,68 @@ print(comparison.to_string())
 
 # Сохранение таблицы
 comparison.to_csv("reports/strategy_comparison.csv")
+
+
+
+
+runfile('C:/Users/mb.aliev/Desktop/PY_apps/!projects/prod_test.py', wdir='C:/Users/mb.aliev/Desktop/PY_apps/!projects')
+Request completed:  0.11034917831420898
+Request completed:  0.1580045223236084
+
+=== Проверка train ===
+Размер: (7161, 4)
+Период: 2022-04-08 00:00:00 — 2026-05-29 00:00:00
+Пропусков в rate: 3691
+Пропусков в amount: 3691
+Валидация пройдена.
+
+=== Проверка eval ===
+Размер: (133, 4)
+Период: 2026-06-01 00:00:00 — 2026-06-26 00:00:00
+Пропусков в rate: 72
+Пропусков в amount: 72
+Валидация пройдена.
+
+Бенчмарк: (18, 7)
+Период: 2026-06-02 00:00:00 — 2026-06-26 00:00:00
+
+=== Обучение модели ===
+Сходимость: FAIL
+Итераций: 0
+Финальная ошибка: inf
+ВНИМАНИЕ: модель не сошлась. Увеличьте max_iter или ослабьте tolerance.
+
+Кривая на train: (1023, 7)
+Пропусков: 0
+
+Общих дат: 18
+Период сравнения: 2026-06-02 00:00:00 — 2026-06-26 00:00:00
+Traceback (most recent call last):
+
+  File C:\ProgramData\anaconda3\lib\site-packages\spyder_kernels\py3compat.py:356 in compat_exec
+    exec(code, globals, locals)
+
+  File c:\users\mb.aliev\desktop\py_apps\!projects\prod_test.py:187
+    mask_aligned = interpolator.mask_.loc[common_dates] if interpolator.mask_ is not None else None
+
+  File C:\ProgramData\anaconda3\lib\site-packages\pandas\core\indexing.py:1073 in __getitem__
+    return self._getitem_axis(maybe_callable, axis=axis)
+
+  File C:\ProgramData\anaconda3\lib\site-packages\pandas\core\indexing.py:1301 in _getitem_axis
+    return self._getitem_iterable(key, axis=axis)
+
+  File C:\ProgramData\anaconda3\lib\site-packages\pandas\core\indexing.py:1239 in _getitem_iterable
+    keyarr, indexer = self._get_listlike_indexer(key, axis)
+
+  File C:\ProgramData\anaconda3\lib\site-packages\pandas\core\indexing.py:1432 in _get_listlike_indexer
+    keyarr, indexer = ax._get_indexer_strict(key, axis_name)
+
+  File C:\ProgramData\anaconda3\lib\site-packages\pandas\core\indexes\base.py:6070 in _get_indexer_strict
+    self._raise_if_missing(keyarr, indexer, axis_name)
+
+  File C:\ProgramData\anaconda3\lib\site-packages\pandas\core\indexes\base.py:6130 in _raise_if_missing
+    raise KeyError(f"None of [{key}] are in the [{axis_name}]")
+
+KeyError: "None of [DatetimeIndex(['2026-06-02', '2026-06-03', '2026-06-04', '2026-06-05',\n               '2026-06-08', '2026-06-09', '2026-06-10', '2026-06-11',\n               '2026-06-15', '2026-06-16', '2026-06-17', '2026-06-18',\n               '2026-06-19', '2026-06-22', '2026-06-23', '2026-06-24',\n               '2026-06-25', '2026-06-26'],\n              dtype='datetime64[ns]', name='date', freq=None)] are in the [index]"
+
+
