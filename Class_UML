@@ -1,0 +1,57 @@
+EMPCAInterpolator
+│
+├── Constructor
+│
+├── Public API
+│   ├── fit()
+│   ├── transform()
+│   ├── fit_transform()
+│   ├── inverse_transform()
+│   ├── reconstruct_curve()
+│   ├── score()
+│   ├── backtest()
+│   ├── plot_curve()
+│   ├── plot_convergence()
+│   ├── plot_factors()
+│   ├── summary()
+│   ├── save()
+│   └── load()
+│
+├── Validation
+│   ├── _validate_input()
+│   ├── _validate_parameters()
+│   └── _check_is_fitted()
+│
+├── Data preparation
+│   ├── _build_rate_matrix()
+│   ├── _build_amount_matrix()
+│   ├── _build_mask()
+│   ├── _initialize_missing()
+│   ├── _scale()
+│   ├── _inverse_scale()
+│   └── _restore_long()
+│
+├── PCA
+│   ├── _select_components()
+│   ├── _fit_pca()
+│   ├── _project()
+│   ├── _reconstruct()
+│   └── _store_factor_information()
+│
+├── EM
+│   ├── _em_iteration()
+│   ├── _compute_delta()
+│   ├── _fit_empca()
+│   └── _update_history()
+│
+├── Diagnostics
+│   ├── _compute_statistics()
+│   ├── _factor_analysis()
+│   ├── _curve_statistics()
+│   └── _convergence_statistics()
+│
+└── Utilities
+    ├── get_params()
+    ├── set_params()
+    ├── reset()
+    └── copy()
