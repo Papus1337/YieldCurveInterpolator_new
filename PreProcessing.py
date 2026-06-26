@@ -8,7 +8,7 @@ yield_curve.preprocessing
 Функциональность
 ----------------
 - Проверка входных данных
-- Построение матрицы ставок
+- Построение матрицы ставок (с взвешиванием по объёму)
 - Построение матрицы объёмов
 - Создание маски пропусков
 - Инициализация пропусков
@@ -120,7 +120,15 @@ def build_rate_matrix(
     buckets: Iterable[int] = DEFAULT_BUCKETS,
 ) -> pd.DataFrame:
     """
-    Построение матрицы ставок.
+    Построение матрицы ставок (взвешенных по объёму amount).
+
+    Логика взвешивания:
+    1. Если по сделке есть rate и amount > 0, учитываем её вес.
+    2. Если amount == NaN, заполняем средним объёмом по данному бакету, 
+       чтобы сделка не была полностью проигнорирована.
+    3. Если amount == 0 (или все amount в группе нулевые), 
+       возвращаем простое среднее по rate, чтобы не терять данные.
+    4. Если все rate в группе NaN, возвращаем NaN.
 
     Returns
     -------
@@ -133,21 +141,73 @@ def build_rate_matrix(
         values  -> weighted rate
     """
 
-    curve = (
-        df
-        .pivot_table(
-            index="date",
-            columns="term_bucket",
-            values="rate",
-            aggfunc="mean",
-        )
-        .sort_index()
+    df_work = df.copy()
+    
+    # Заполняем пропуски в amount средним значением по соответствующему бакету.
+    # Это позволяет сделкам с неизвестным объёмом всё равно участвовать во взвешивании.
+    df_work["amount"] = (
+        df_work
+        .groupby("term_bucket")["amount"]
+        .transform(lambda x: x.fillna(x.mean()))
     )
-
-    curve = curve.reindex(columns=buckets)
-
+    # Если во всём бакете объёмы были NaN, заполняем оставшиеся нулями
+    df_work["amount"] = df_work["amount"].fillna(0.0)
+    
+    # Маска валидных (не-NaN) ставок
+    valid_rate = df_work["rate"].notna()
+    
+    # Знаменатель: сумма amount только там, где rate валиден
+    df_work["valid_amount"] = np.where(valid_rate, df_work["amount"], 0.0)
+    
+    # Числитель: сумма (rate * amount)
+    # Если rate NaN, произведение тоже NaN. При суммировании pandas пропустит NaN.
+    df_work["weighted_rate_sum"] = df_work["rate"] * df_work["amount"]
+    
+    # Агрегируем через pivot_table (работает быстрее, чем groupby.apply)
+    num = df_work.pivot_table(
+        index="date", 
+        columns="term_bucket", 
+        values="weighted_rate_sum", 
+        aggfunc="sum"
+    )
+    
+    den = df_work.pivot_table(
+        index="date", 
+        columns="term_bucket", 
+        values="valid_amount", 
+        aggfunc="sum"
+    )
+    
+    # Считаем количество валидных rate в каждой группе
+    count = df_work.pivot_table(
+        index="date", 
+        columns="term_bucket",
+        values="rate", 
+        aggfunc="count"
+    )
+    
+    # Делим числитель на знаменатель
+    curve = num / den
+    
+    # Если count == 0, значит не было ни одной валидной ставки -> принудительно NaN
+    curve = curve.where(count > 0, np.nan)
+    
+    # Обработка edge-case: если count > 0, но все amount оказались нулевыми (den == 0)
+    # В таком случае fallback на простое среднее, чтобы не терять информацию
+    simple_mean = df_work.pivot_table(
+        index="date", 
+        columns="term_bucket",
+        values="rate", 
+        aggfunc="mean"
+    )
+    
+    fallback_mask = (den == 0) & (count > 0)
+    curve = curve.mask(fallback_mask, simple_mean)
+    
+    # Финальное выравнивание структуры
+    curve = curve.reindex(columns=buckets).sort_index()
     curve.index = pd.to_datetime(curve.index)
-
+    
     return curve
 
 
