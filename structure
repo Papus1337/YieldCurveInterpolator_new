@@ -1,0 +1,23 @@
+yield_curve/
+│
+├── __init__.py
+│
+├── interpolator.py        <- публичный API
+│
+├── engines/
+│   ├── __init__.py
+│   ├── empca.py           <- EM-PCA
+│   ├── ppca.py            <- позже
+│   └── kalman.py          <- позже
+│
+├── preprocessing.py
+│
+├── diagnostics.py
+│
+├── metrics.py
+│
+├── plotting.py
+│
+├── backtest.py
+│
+└── utils.py
