@@ -325,9 +325,9 @@ comparison.to_csv("reports/strategy_comparison.csv")
 
 
 runfile('C:/Users/mb.aliev/Desktop/PY_apps/!projects/prod_test.py', wdir='C:/Users/mb.aliev/Desktop/PY_apps/!projects')
-Reloaded modules: yield_curve.preprocessing, yield_curve.engines.empca, yield_curve.engines, yield_curve.interpolator, yield_curve.diagnostics, yield_curve.metrics, yield_curve
-Request completed:  0.056951284408569336
-Request completed:  3.980391502380371
+Reloaded modules: yield_curve.preprocessing, yield_curve.engines.empca, yield_curve.engines, yield_curve.interpolator, yield_curve.diagnostics, yield_curve, yield_curve.metrics
+Request completed:  0.034626007080078125
+Request completed:  0.7661921977996826
 
 === Проверка train ===
 Размер: (7161, 4)
@@ -371,7 +371,7 @@ Traceback (most recent call last):
   File ~\Desktop\PY_apps\!projects\yield_curve\metrics.py:228 in pointwise_metrics
     "rmse": rmse(predicted, actual, mask),
 
-  File ~\Desktop\PY_apps\!projects\yield_curve\metrics.py:131 in rmse
-    p, a = _align_curves(predicted, actual, mask)
+  File ~\Desktop\PY_apps\!projects\yield_curve\metrics.py:132 in rmse
+    p, a, _ = _apply_mask(p, a, mask)
 
-ValueError: too many values to unpack (expected 2)
+ValueError: not enough values to unpack (expected 3, got 2)
