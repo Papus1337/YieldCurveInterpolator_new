@@ -58,6 +58,9 @@ class YieldCurveInterpolator:
         self.mask_: Optional[pd.DataFrame] = None
         self.original_curve_: Optional[pd.DataFrame] = None
         self.is_fitted_: bool = False
+        
+        # Сохраняем средние из истории для инициализации
+        self._columns_means_: Optional[pd.Series] = None
 
     def _init_engine(self) -> Any:
         """Фабричный метод для создания вычислительного движка."""
@@ -87,8 +90,27 @@ class YieldCurveInterpolator:
         original_curve = pp.build_rate_matrix(df, self.buckets)
         mask = pp.build_missing_mask(original_curve)
         
-        # Инициализируем пропуски, чтобы матрица была плотной (требование движков)
-        initialized = pp.initialize_missing(original_curve, method=self.init_method)
+        ## Инициализируем пропуски, чтобы матрица была плотной (требование движков)
+        #initialized = pp.initialize_missing(original_curve, method=self.init_method)
+        
+        # Инициализируем пропуски
+        if is_fit:
+            # При обучении используем стандартный метод
+            initialized = pp.initialize_missing(original_curve, method=self.init_method)
+            # Сохраняем средние по колонкам для будущего использования
+            self._columns_means_ = initialized.mean()
+        else:
+            # При трансформации: если строк < 2, то используем средние из истории
+            if len(original_curve) < 2:
+                initialized = original_curve.copy()
+                # Заполняем NaN средними из истории
+                for col in initialized.columns():
+                    if initialized[col].isna().any() and self._columns_means_ is not None:
+                        initialized[col] = initialized[col].fillna(self._columns_means_[col])
+                # Если всё ещё есть NaN, заполняем нулями
+                initialized = initialized.fillna(0.0)
+            else:
+                initialized = pp.initialize_missing(original_curve, method=self.init_method)
         
         # Масштабирование
         if self.scale:
