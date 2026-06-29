@@ -1020,7 +1020,7 @@ def plot_monthly_returns(
         title = f"Месячные доходности — стратегия {result.strategy_name}"
 
     equity = result.equity_curve
-    monthly = equity.resample("ME").last().pct_change().dropna() * 100
+    monthly = equity.resample("M").last().pct_change().dropna() * 100
 
     # Группировка по годам и месяцам
     monthly_df = pd.DataFrame({
@@ -1158,7 +1158,7 @@ def plot_backtest_dashboard(
 
     # 4. Monthly returns heatmap (как отдельный subplot не получится —
     #    используем annotations вместо heatmap)
-    monthly = result.equity_curve.resample("ME").last().pct_change().dropna() * 100
+    monthly = result.equity_curve.resample("M").last().pct_change().dropna() * 100
     monthly_by_year = monthly.groupby(
         [monthly.index.year, monthly.index.month]
     ).first().unstack()
