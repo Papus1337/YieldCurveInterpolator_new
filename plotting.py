@@ -1036,6 +1036,114 @@ def plot_directional_accuracy_rolling(
 
 
 ###############################################################################
+# 3D surface
+###############################################################################
+def plot_curve_surface_3d(
+    curve: pd.DataFrame,
+    title: str = "3D-поверхность кривой ставок",
+    colorscale: str = "Viridis",
+    show_contour: bool = True,
+    width: int = 1200,
+    height: int = 800,
+) -> go.Figure:
+    """
+    Интерактивная 3D-поверхность кривой ставок.
+
+    Оси:
+    - X: срочность (дни)
+    - Y: дата
+    - Z: ставка (% годовых)
+
+    Parameters
+    ----------
+    curve
+        Матрица ставок в wide-формате (index=date, columns=buckets).
+    title
+    colorscale
+        Цветовая шкала Plotly.
+    show_contour
+        Показывать ли контурные линии на основании.
+    width, height
+    """
+
+    dates = curve.index
+    buckets = curve.columns.tolist()
+
+    # Z: shape (buckets, dates)
+    Z = curve.values.T
+
+    # Преобразуем даты в числовой формат для оси Y
+    date_ordinal = np.array([d.toordinal() for d in dates])
+    
+    # Подписи дат для hover
+    date_labels = [d.strftime("%Y-%m-%d") for d in dates]
+
+    fig = go.Figure(data=go.Surface(
+        x=buckets,
+        y=date_ordinal,
+        z=Z,
+        colorscale=colorscale,
+        colorbar=dict(
+            title="Ставка, %",
+            len=0.7,
+            thickness=15,
+        ),
+        contours=go.surface.Contours(
+            z=dict(
+                show=show_contour,
+                usecolormap=True,
+                highlightcolor="lime",
+                project_z=True,
+            )
+        ) if show_contour else None,
+        hovertemplate=(
+            "Срочность: %{x} дн.<br>"
+            "Дата: %{customdata}<br>"
+            "Ставка: %{z:.4f}%<extra></extra>"
+        ),
+        customdata=np.array([[d for d in date_labels] for _ in buckets]).T,
+    ))
+
+    fig.update_layout(
+        title=dict(
+            text=title,
+            font=dict(size=DEFAULT_TITLE_SIZE + 2, family=DEFAULT_FONT_FAMILY),
+            x=0.5,
+        ),
+        template=DEFAULT_TEMPLATE,
+        font=dict(family=DEFAULT_FONT_FAMILY, size=DEFAULT_FONT_SIZE),
+        width=width,
+        height=height,
+        scene=dict(
+            xaxis=dict(
+                title="Срочность, дней",
+                gridcolor="rgb(200, 200, 200)",
+                zerolinecolor="rgb(200, 200, 200)",
+            ),
+            yaxis=dict(
+                title="Дата",
+                gridcolor="rgb(200, 200, 200)",
+                zerolinecolor="rgb(200, 200, 200)",
+                tickvals=date_ordinal[::max(1, len(date_ordinal)//10)],
+                ticktext=date_labels[::max(1, len(date_labels)//10)],
+            ),
+            zaxis=dict(
+                title="Ставка, % годовых",
+                gridcolor="rgb(200, 200, 200)",
+                zerolinecolor="rgb(200, 200, 200)",
+            ),
+            aspectmode="auto",
+            camera=dict(
+                eye=dict(x=1.5, y=1.5, z=0.8),
+            ),
+        ),
+        margin=dict(l=20, r=20, t=80, b=20),
+    )
+
+    return fig
+
+
+###############################################################################
 # Dashboard
 ###############################################################################
 
