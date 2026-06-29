@@ -149,6 +149,8 @@ def save_figure(
 
     path = Path(path)
 
+    path.parent.mkdir(parents=True, exist_ok=True)
+
     if format == "html":
         if path.suffix != ".html":
             path = path.with_suffix(".html")
