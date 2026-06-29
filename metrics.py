@@ -128,8 +128,8 @@ def rmse(
     Измеряется в тех же единицах, что и ставки (например, % годовых).
     """
 
-    p, a = _align_curves(predicted, actual, mask)
-    p, a = _apply_mask(p, a, mask)
+    p, a, _ = _align_curves(predicted, actual, mask)
+    p, a, _ = _apply_mask(p, a, mask)
 
     diff = (p - a).values.flatten()
     diff = diff[~np.isnan(diff)]
@@ -151,8 +151,8 @@ def mae(
     Более робастная метрика, чем RMSE — меньше чувствительна к выбросам.
     """
 
-    p, a = _align_curves(predicted, actual, mask)
-    p, a = _apply_mask(p, a, mask)
+    p, a, _ = _align_curves(predicted, actual, mask)
+    p, a, _ = _apply_mask(p, a, mask)
 
     diff = (p - a).values.flatten()
     diff = diff[~np.isnan(diff)]
@@ -176,8 +176,8 @@ def mape(
     Для ставок это обычно не проблема (ставки > 0).
     """
 
-    p, a = _align_curves(predicted, actual, mask)
-    p, a = _apply_mask(p, a, mask)
+    p, a, _ = _align_curves(predicted, actual, mask)
+    p, a, _ = _apply_mask(p, a, mask)
 
     p_vals = p.values.flatten()
     a_vals = a.values.flatten()
@@ -203,8 +203,8 @@ def max_error(
     Показывает худший случай — полезно для оценки tail-risk модели.
     """
 
-    p, a = _align_curves(predicted, actual, mask)
-    p, a = _apply_mask(p, a, mask)
+    p, a, _ = _align_curves(predicted, actual, mask)
+    p, a, _ = _apply_mask(p, a, mask)
 
     diff = (p - a).values.flatten()
     diff = diff[~np.isnan(diff)]
