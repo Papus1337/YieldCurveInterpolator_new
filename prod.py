@@ -11,8 +11,7 @@ Created on Mon Jun 29 11:01:56 2026
 import warnings
 warnings.filterwarnings("ignore")
 
-import os
-import time
+import time, datetime
 from pathlib import Path
 
 import numpy as np
@@ -64,7 +63,7 @@ df_history = DB_request(sql_history)
 # 2. Параметры
 # -------------------------------------------------------
 BUCKETS = [1, 7, 14, 31, 61, 91, 181]
-TARGET_DATE = pd.Timestamp('2026-06-26')  # Дата, на которую моделируем
+TARGET_DATE = pd.Timestamp('2026-06-25')  # Дата, на которую моделируем
 FORECAST_DAYS = 7                          # На сколько дней прогнозируем
 
 # Создаём директорию для отчётов
@@ -79,7 +78,7 @@ df_train = df_history[df_history['date'] < TARGET_DATE].copy()
 # Данные за целевую дату (для трансформации)
 df_target = df_history[df_history['date'] == TARGET_DATE].copy()
 
-print(f"\n=== Данные ===")
+print("\n=== Данные ===")
 print(f"Train: {df_train.shape[0]} строк, период {df_train['date'].min()} — {df_train['date'].max()}")
 print(f"Target date: {TARGET_DATE.date()}, {df_target.shape[0]} строк")
 print(f"Пропусков в target: {df_target['rate'].isna().sum()}")
@@ -95,8 +94,8 @@ interpolator = YieldCurveInterpolator(
     engine="empca",
     engine_params={
         "n_components": 6,
-        "max_iter": 1000,
-        "tol": 1e-6,
+        "max_iter": 5000,
+        "tol": 1e-5,
         "relaxation": 0.8,
     },
     buckets=BUCKETS,
@@ -121,7 +120,7 @@ print(f"Финальная ошибка: {conv['final_error']:.2e}")
 # На выходе — полная кривая без пропусков
 target_curve = interpolator.transform(df_target)
 
-print(f"\n=== Результат моделирования ===")
+print("\n=== Результат моделирования ===")
 print(f"Кривая на {TARGET_DATE.date()}:")
 print(target_curve.to_string())
 
@@ -190,7 +189,7 @@ print(forecast_curve.to_string())
 full_result = pd.concat([target_curve, forecast_curve])
 full_result = full_result.sort_index()
 
-print(f"\n=== Итоговый результат ===")
+print("\n=== Итоговый результат ===")
 print(f"Всего дат: {len(full_result)}")
 print(full_result.to_string())
 
@@ -203,8 +202,10 @@ print(full_result.to_string())
 history_tail = interpolator.get_curve().iloc[-60:]
 combined_for_plot = pd.concat([history_tail, forecast_curve])
 
+
 fig_3d = plotting.plot_curve_surface_3d(
-    combined_for_plot,
+    #combined_for_plot,
+    forecast_curve,
     title=f"Кривая ставок: история + прогноз на {FORECAST_DAYS} дней",
 )
 fig_3d.show()
@@ -275,16 +276,18 @@ def save_to_db(df_wide, table_name, server, database, schema="qt"):
         """)
         
         # Вставляем новые данные
+        dt_update = datetime.datetime.now()
         for _, row in df_to_save.iterrows():
             cursor.execute(
                 f"""
                 INSERT INTO [{schema}].[{table_name}] 
-                ([date], [term_bucket], [rate])
-                VALUES (?, ?, ?)
+                ([date], [term_avg], [spread], dt_update)
+                VALUES (?, ?, ?, ?)
                 """,
                 row["date"],
                 row["term_bucket"],
                 row["rate"],
+                dt_update,
             )
         
         conn.commit()
@@ -298,11 +301,11 @@ def save_to_db(df_wide, table_name, server, database, schema="qt"):
         cursor.close()
         conn.close()
 
-'''
+#'''
 # Сохраняем результат (целевая дата + прогноз)
 save_to_db(
     df_wide=full_result,
-    table_name="forecast_yield_curve",  # Имя таблицы для прогнозов
+    table_name="spreads_from_auc_V3",  
     server="trading-db.ahml1.ru",
     database="LIQUIDITY",
     schema="qt",
@@ -312,35 +315,3 @@ print("\n=== Готово ===")
 #'''
 
 
-
-
-runfile('C:/Users/mb.aliev/Desktop/PY_apps/!projects/prod.py', wdir='C:/Users/mb.aliev/Desktop/PY_apps/!projects')
-Reloaded modules: yield_curve.preprocessing, yield_curve.engines.empca, yield_curve.engines, yield_curve.diagnostics, yield_curve.metrics, yield_curve, yield_curve.plotting, yield_curve.interpolator
-Request completed:  0.03699541091918945
-
-=== Данные ===
-Train: 7287 строк, период 2022-04-08 00:00:00 — 2026-06-25 00:00:00
-Target date: 2026-06-26, 7 строк
-Пропусков в target: 3
-
-=== Обучение модели ===
-Сходимость: FAIL
-Итераций: 1000
-Финальная ошибка: 1.17e-04
-Traceback (most recent call last):
-
-  File C:\ProgramData\anaconda3\lib\site-packages\spyder_kernels\py3compat.py:356 in compat_exec
-    exec(code, globals, locals)
-
-  File c:\users\mb.aliev\desktop\py_apps\!projects\prod.py:122
-    target_curve = interpolator.transform(df_target)
-
-  File ~\Desktop\PY_apps\!projects\yield_curve\interpolator.py:192 in transform
-    scaled, mask, original_curve = self._preprocess(df, is_fit=False)
-
-  File ~\Desktop\PY_apps\!projects\yield_curve\interpolator.py:107 in _preprocess
-    for col in initialized.columns():
-
-TypeError: 'Int64Index' object is not callable
-
-                
