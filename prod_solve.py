@@ -125,8 +125,8 @@ interpolator = YieldCurveInterpolator(
     engine="empca",
     engine_params={
         "n_components": 3,
-        "max_iter": 200,
-        #"tol": 1e-7,
+        "max_iter": 500,
+        "tol": 1e-6,
         "relaxation": 0.8,
     },
     buckets=BUCKETS,
@@ -324,10 +324,13 @@ print(comparison.to_string())
 comparison.to_csv("reports/strategy_comparison.csv")
 
 
+
+
+
 runfile('C:/Users/mb.aliev/Desktop/PY_apps/!projects/prod_test.py', wdir='C:/Users/mb.aliev/Desktop/PY_apps/!projects')
-Reloaded modules: yield_curve.preprocessing, yield_curve.engines.empca, yield_curve.engines, yield_curve.interpolator, yield_curve.diagnostics, yield_curve, yield_curve.metrics
-Request completed:  0.034626007080078125
-Request completed:  0.7661921977996826
+Reloaded modules: yield_curve.preprocessing, yield_curve.engines.empca, yield_curve.engines, yield_curve.interpolator, yield_curve.diagnostics, yield_curve.metrics, yield_curve, yield_curve.plotting
+Request completed:  0.03194427490234375
+Request completed:  0.1603085994720459
 
 === Проверка train ===
 Размер: (7161, 4)
@@ -348,8 +351,8 @@ Request completed:  0.7661921977996826
 
 === Обучение модели ===
 Сходимость: FAIL
-Итераций: 0
-Финальная ошибка: inf
+Итераций: 500
+Финальная ошибка: 1.10e-03
 ВНИМАНИЕ: модель не сошлась. Увеличьте max_iter или ослабьте tolerance.
 
 Кривая на train: (1023, 7)
@@ -357,21 +360,103 @@ Request completed:  0.7661921977996826
 
 Общих дат: 19
 Период сравнения: 2026-06-02 00:00:00 — 2026-06-29 00:00:00
+======================================================================
+YIELD CURVE METRICS REPORT
+======================================================================
+
+Total observations: 133
+
+[1] POINTWISE METRICS
+    rmse        : 0.000417
+    mae         : 0.000239
+    mape        : 49.1060%
+    max_error   : 0.002203
+
+[2] DIRECTIONAL ACCURACY
+    0.9302 (93.02%)
+
+[3] RANK CORRELATION (Spearman)
+    Mean: 0.8410
+    Min:  0.2000
+    Max:  1.0000
+
+[4] ECONOMIC METRICS
+    Total PnL:                -21.69
+    Annualized PnL:          -287.68
+
+[5] METRICS BY BUCKET (top 3 worst by RMSE)
+            rmse       mae        mape  max_error  directional_accuracy  mean_bias  n_obs
+bucket                                                                                   
+61      0.001065  0.000766  208.722647   0.002203                  0.75  -0.000674      5
+91      0.000603  0.000361  188.455624   0.001316                  0.75   0.000246      5
+31      0.000302  0.000232   39.787272   0.000546                  1.00   0.000032      9
+
+[6] METRICS BY DATE (top 5 worst by RMSE)
+                rmse       mae  max_error  l2_distance  cosine_similarity  n_obs
+date                                                                            
+2026-06-26  0.001147  0.000817   0.002203     0.002294           0.727355      4
+2026-06-25  0.000609  0.000439   0.001316     0.001491           0.939998      6
+2026-06-22  0.000512  0.000387   0.000744     0.001023           0.976855      4
+2026-06-17  0.000469  0.000441   0.000612     0.000812           0.990642      3
+2026-06-23  0.000429  0.000313   0.000728     0.000744           0.995184      3
+
+======================================================================
+
+=== Метрики по бакетам ===
+            rmse       mae        mape  max_error  directional_accuracy  mean_bias  n_obs
+bucket                                                                                   
+1       0.000251  0.000179    4.520187   0.000698              0.875000  -0.000066     17
+7       0.000285  0.000195   14.180142   0.000728              0.923077   0.000012     14
+14      0.000193  0.000130   39.484332   0.000496              1.000000   0.000042     12
+31      0.000302  0.000232   39.787272   0.000546              1.000000   0.000032      9
+61      0.001065  0.000766  208.722647   0.002203              0.750000  -0.000674      5
+91      0.000603  0.000361  188.455624   0.001316              0.750000   0.000246      5
+181     0.000010  0.000010    0.522118   0.000010                   NaN  -0.000010      1
+
+=== Худшие 10 дат по RMSE ===
+                rmse       mae  max_error  l2_distance  cosine_similarity  n_obs
+date                                                                            
+2026-06-26  0.001147  0.000817   0.002203     0.002294           0.727355      4
+2026-06-25  0.000609  0.000439   0.001316     0.001491           0.939998      6
+2026-06-22  0.000512  0.000387   0.000744     0.001023           0.976855      4
+2026-06-17  0.000469  0.000441   0.000612     0.000812           0.990642      3
+2026-06-23  0.000429  0.000313   0.000728     0.000744           0.995184      3
+2026-06-19  0.000336  0.000275   0.000546     0.000581           0.995865      3
+2026-06-15  0.000222  0.000167   0.000313     0.000314           0.999111      2
+2026-06-03  0.000216  0.000153   0.000367     0.000373           0.999655      3
+2026-06-18  0.000187  0.000178   0.000234     0.000264           0.999527      2
+2026-06-10  0.000182  0.000140   0.000311     0.000445           0.997975      6
+
+Направленная точность: 0.9302
+Ранговая корреляция (Spearman): 0.8410
+
+Суммарный PnL: -21.69
+Годовой PnL: -287.68
+
+
+
+
 Traceback (most recent call last):
 
   File C:\ProgramData\anaconda3\lib\site-packages\spyder_kernels\py3compat.py:356 in compat_exec
     exec(code, globals, locals)
 
-  File c:\users\mb.aliev\desktop\py_apps\!projects\prod_test.py:200
-    report = metrics.compare_curves(
+  File c:\users\mb.aliev\desktop\py_apps\!projects\prod_test.py:267
+    plotting.save_figure(fig_compare, "reports/curve_comparison.html", format="html")
 
-  File ~\Desktop\PY_apps\!projects\yield_curve\metrics.py:726 in compare_curves
-    report["pointwise"] = pointwise_metrics(p, a, aligned_mask)
+  File ~\Desktop\PY_apps\!projects\yield_curve\plotting.py:155 in save_figure
+    fig.write_html(str(path), include_plotlyjs="cdn")
 
-  File ~\Desktop\PY_apps\!projects\yield_curve\metrics.py:228 in pointwise_metrics
-    "rmse": rmse(predicted, actual, mask),
+  File ~\AppData\Roaming\Python\Python310\site-packages\plotly\basedatatypes.py:3712 in write_html
+    return pio.write_html(self, *args, **kwargs)
 
-  File ~\Desktop\PY_apps\!projects\yield_curve\metrics.py:132 in rmse
-    p, a, _ = _apply_mask(p, a, mask)
+  File ~\AppData\Roaming\Python\Python310\site-packages\plotly\io\_html.py:503 in write_html
+    path.write_text(html_str, "utf-8")
 
-ValueError: not enough values to unpack (expected 3, got 2)
+  File C:\ProgramData\anaconda3\lib\pathlib.py:1154 in write_text
+    with self.open(mode='w', encoding=encoding, errors=errors, newline=newline) as f:
+
+  File C:\ProgramData\anaconda3\lib\pathlib.py:1119 in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+
+FileNotFoundError: [Errno 2] No such file or directory: 'reports\\curve_comparison.html'
