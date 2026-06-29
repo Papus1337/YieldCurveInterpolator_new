@@ -300,3 +300,59 @@ save_to_db(
 )
 
 print("\n=== Готово ===")
+
+
+
+runfile('C:/Users/mb.aliev/Desktop/PY_apps/!projects/prod.py', wdir='C:/Users/mb.aliev/Desktop/PY_apps/!projects')
+Reloaded modules: yield_curve.preprocessing, yield_curve.engines.empca, yield_curve.engines, yield_curve.interpolator, yield_curve.diagnostics, yield_curve.metrics, yield_curve
+Request completed:  0.10839724540710449
+
+=== Данные ===
+Train: 7287 строк, период 2022-04-08 00:00:00 — 2026-06-25 00:00:00
+Target date: 2026-06-26, 7 строк
+Пропусков в target: 3
+
+=== Обучение модели ===
+Сходимость: FAIL
+Итераций: 1000
+Финальная ошибка: 1.17e-04
+Traceback (most recent call last):
+
+  File C:\ProgramData\anaconda3\lib\site-packages\spyder_kernels\py3compat.py:356 in compat_exec
+    exec(code, globals, locals)
+
+  File c:\users\mb.aliev\desktop\py_apps\!projects\prod.py:122
+    target_curve = interpolator.transform(df_target)
+
+  File ~\Desktop\PY_apps\!projects\yield_curve\interpolator.py:173 in transform
+    reconstructed_scaled = self._engine.transform(scaled, mask)
+
+  File ~\Desktop\PY_apps\!projects\yield_curve\engines\empca.py:416 in transform
+    updated = self._em_iteration(
+
+  File ~\Desktop\PY_apps\!projects\yield_curve\engines\empca.py:269 in _em_iteration
+    reconstruction = self._reconstruct(X)
+
+  File ~\Desktop\PY_apps\!projects\yield_curve\engines\empca.py:183 in _reconstruct
+    scores = self.pca_.transform(X)
+
+  File C:\ProgramData\anaconda3\lib\site-packages\sklearn\utils\_set_output.py:142 in wrapped
+    data_to_wrap = f(self, X, *args, **kwargs)
+
+  File C:\ProgramData\anaconda3\lib\site-packages\sklearn\decomposition\_base.py:120 in transform
+    X = self._validate_data(X, dtype=[np.float64, np.float32], reset=False)
+
+  File C:\ProgramData\anaconda3\lib\site-packages\sklearn\base.py:546 in _validate_data
+    X = check_array(X, input_name="X", **check_params)
+
+  File C:\ProgramData\anaconda3\lib\site-packages\sklearn\utils\validation.py:921 in check_array
+    _assert_all_finite(
+
+  File C:\ProgramData\anaconda3\lib\site-packages\sklearn\utils\validation.py:161 in _assert_all_finite
+    raise ValueError(msg_err)
+
+ValueError: Input X contains NaN.
+PCA does not accept missing values encoded as NaN natively. For supervised learning, you might want to consider sklearn.ensemble.HistGradientBoostingClassifier and Regressor which accept missing values encoded as NaNs natively. Alternatively, it is possible to preprocess the data, for instance by using an imputer transformer in a pipeline or drop samples with missing values. See https://scikit-learn.org/stable/modules/impute.html You can find a list of all estimators that handle NaN values at the following page: https://scikit-learn.org/stable/modules/impute.html#estimators-that-handle-nan-values
+
+
+     
