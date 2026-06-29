@@ -129,7 +129,7 @@ def rmse(
     """
 
     p, a, _ = _align_curves(predicted, actual, mask)
-    p, a, _ = _apply_mask(p, a, mask)
+    p, a = _apply_mask(p, a, mask)
 
     diff = (p - a).values.flatten()
     diff = diff[~np.isnan(diff)]
@@ -152,7 +152,7 @@ def mae(
     """
 
     p, a, _ = _align_curves(predicted, actual, mask)
-    p, a, _ = _apply_mask(p, a, mask)
+    p, a = _apply_mask(p, a, mask)
 
     diff = (p - a).values.flatten()
     diff = diff[~np.isnan(diff)]
@@ -177,7 +177,7 @@ def mape(
     """
 
     p, a, _ = _align_curves(predicted, actual, mask)
-    p, a, _ = _apply_mask(p, a, mask)
+    p, a = _apply_mask(p, a, mask)
 
     p_vals = p.values.flatten()
     a_vals = a.values.flatten()
@@ -204,7 +204,7 @@ def max_error(
     """
 
     p, a, _ = _align_curves(predicted, actual, mask)
-    p, a, _ = _apply_mask(p, a, mask)
+    p, a = _apply_mask(p, a, mask)
 
     diff = (p - a).values.flatten()
     diff = diff[~np.isnan(diff)]
@@ -255,7 +255,7 @@ def directional_accuracy(
         Доля верных предсказаний направления (от 0 до 1).
     """
 
-    p, a = _align_curves(predicted, actual, mask)
+    p, a, _ = _align_curves(predicted, actual, mask)
     p, a = _apply_mask(p, a, mask)
 
     p_diff = p.diff(axis=0)
@@ -285,7 +285,7 @@ def directional_accuracy_by_bucket(
     Направленная точность по каждому бакету.
     """
 
-    p, a = _align_curves(predicted, actual, mask)
+    p, a, _ = _align_curves(predicted, actual, mask)
     p, a = _apply_mask(p, a, mask)
 
     p_diff = p.diff(axis=0)
@@ -321,7 +321,7 @@ def curve_l2_distance(
     отклоняется от эталонной как единый объект.
     """
 
-    p, a = _align_curves(predicted, actual, mask)
+    p, a, _ = _align_curves(predicted, actual, mask)
     p, a = _apply_mask(p, a, mask)
 
     diff = p - a
@@ -342,7 +342,7 @@ def curve_cosine_similarity(
     Значения от -1 до 1, где 1 — полное совпадение формы.
     """
 
-    p, a = _align_curves(predicted, actual, mask)
+    p, a, _ = _align_curves(predicted, actual, mask)
     p, a = _apply_mask(p, a, mask)
 
     results = {}
@@ -400,7 +400,7 @@ def rank_correlation(
         Индекс — даты, значения — коэффициент корреляции.
     """
 
-    p, a = _align_curves(predicted, actual, mask)
+    p, a, _ = _align_curves(predicted, actual, mask)
     p, a = _apply_mask(p, a, mask)
 
     results = {}
@@ -468,7 +468,7 @@ def pnl_per_bucket(
         Индекс — даты, колонки — бакеты, значения — PnL в единицах.
     """
 
-    p, a = _align_curves(predicted, actual, mask)
+    p, a, _ = _align_curves(predicted, actual, mask)
     p, a = _apply_mask(p, a, mask)
 
     if duration_map is None:
@@ -543,7 +543,7 @@ def metrics_by_bucket(
          'mean_bias', 'n_obs'].
     """
 
-    p, a = _align_curves(predicted, actual, mask)
+    p, a, _ = _align_curves(predicted, actual, mask)
     p, a = _apply_mask(p, a, mask)
 
     records = []
@@ -623,7 +623,7 @@ def metrics_by_date(
          'n_obs'].
     """
 
-    p, a = _align_curves(predicted, actual, mask)
+    p, a, _ = _align_curves(predicted, actual, mask)
     p, a = _apply_mask(p, a, mask)
 
     records = []
