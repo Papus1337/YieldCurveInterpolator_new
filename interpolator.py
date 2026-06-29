@@ -104,7 +104,7 @@ class YieldCurveInterpolator:
             if len(original_curve) < 2:
                 initialized = original_curve.copy()
                 # Заполняем NaN средними из истории
-                for col in initialized.columns():
+                for col in initialized.columns:
                     if initialized[col].isna().any() and self._columns_means_ is not None:
                         initialized[col] = initialized[col].fillna(self._columns_means_[col])
                 # Если всё ещё есть NaN, заполняем нулями
