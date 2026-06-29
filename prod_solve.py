@@ -326,11 +326,10 @@ comparison.to_csv("reports/strategy_comparison.csv")
 
 
 
-
 runfile('C:/Users/mb.aliev/Desktop/PY_apps/!projects/prod_test.py', wdir='C:/Users/mb.aliev/Desktop/PY_apps/!projects')
 Reloaded modules: yield_curve.preprocessing, yield_curve.engines.empca, yield_curve.engines, yield_curve.interpolator, yield_curve.diagnostics, yield_curve.metrics, yield_curve, yield_curve.plotting
-Request completed:  0.03194427490234375
-Request completed:  0.1603085994720459
+Request completed:  0.2095036506652832
+Request completed:  0.2111506462097168
 
 === Проверка train ===
 Размер: (7161, 4)
@@ -351,8 +350,8 @@ Request completed:  0.1603085994720459
 
 === Обучение модели ===
 Сходимость: FAIL
-Итераций: 500
-Финальная ошибка: 1.10e-03
+Итераций: 1000
+Финальная ошибка: 1.17e-04
 ВНИМАНИЕ: модель не сошлась. Увеличьте max_iter или ослабьте tolerance.
 
 Кривая на train: (1023, 7)
@@ -436,27 +435,95 @@ date
 
 
 
+
+Отчёты сохранены в директорию reports/
+======================================================================
+BACKTEST REPORT — MEAN_REVERSION
+======================================================================
+
+[Period]
+    Start:              2026-06-02 00:00:00
+    End:                2026-06-29 00:00:00
+    Trading days:       19
+
+[Returns]
+    Total return:           -335,909.02
+    Total return (%):           -0.4799%
+    Annualized return:          -0.0651 (-6.51%)
+    Annualized vol:              0.0029 (0.29%)
+
+[Risk-adjusted]
+    Sharpe ratio:              -22.2125
+    Sortino ratio:             -24.5175
+    Calmar ratio:              -13.5716
+    Max drawdown:               -0.0048 (-0.48%)
+    Max DD duration:                 16 days
+
+[Trading]
+    Win rate:                    0.0000 (0.00%)
+    Profit factor:               0.0000
+    Number of trades:                44
+    Avg daily turnover:   25,263,157.89
+
+[Parameters]
+    notional              : 10000000
+    transaction_cost_bps  : 5.0
+    slippage_bps          : 2.0
+    risk_free_rate        : 0.0
+    signal_lag            : 1
+    rebalance_frequency   : 1
+    n_buckets             : 7
+    initial_capital       : 70000000
+    zscore_threshold      : 1.0
+    lookback              : 20
+
+======================================================================
+Temporary dictory couldn't be removed manually.
+Traceback (most recent call last):
+
+  File pandas\_libs\tslibs\offsets.pyx:3878 in pandas._libs.tslibs.offsets._get_offset
+
+KeyError: 'ME'
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+
+  File pandas\_libs\tslibs\offsets.pyx:3979 in pandas._libs.tslibs.offsets.to_offset
+
+  File pandas\_libs\tslibs\offsets.pyx:3884 in pandas._libs.tslibs.offsets._get_offset
+
+ValueError: Invalid frequency: ME
+
+
+The above exception was the direct cause of the following exception:
+
 Traceback (most recent call last):
 
   File C:\ProgramData\anaconda3\lib\site-packages\spyder_kernels\py3compat.py:356 in compat_exec
     exec(code, globals, locals)
 
-  File c:\users\mb.aliev\desktop\py_apps\!projects\prod_test.py:267
-    plotting.save_figure(fig_compare, "reports/curve_comparison.html", format="html")
+  File c:\users\mb.aliev\desktop\py_apps\!projects\prod_test.py:303
+    fig_bt = plot_backtest_dashboard(result)
 
-  File ~\Desktop\PY_apps\!projects\yield_curve\plotting.py:155 in save_figure
-    fig.write_html(str(path), include_plotlyjs="cdn")
+  File ~\Desktop\PY_apps\!projects\yield_curve\backtest.py:1161 in plot_backtest_dashboard
+    monthly = result.equity_curve.resample("ME").last().pct_change().dropna() * 100
 
-  File ~\AppData\Roaming\Python\Python310\site-packages\plotly\basedatatypes.py:3712 in write_html
-    return pio.write_html(self, *args, **kwargs)
+  File C:\ProgramData\anaconda3\lib\site-packages\pandas\core\series.py:5872 in resample
+    return super().resample(
 
-  File ~\AppData\Roaming\Python\Python310\site-packages\plotly\io\_html.py:503 in write_html
-    path.write_text(html_str, "utf-8")
+  File C:\ProgramData\anaconda3\lib\site-packages\pandas\core\generic.py:8858 in resample
+    return get_resampler(
 
-  File C:\ProgramData\anaconda3\lib\pathlib.py:1154 in write_text
-    with self.open(mode='w', encoding=encoding, errors=errors, newline=newline) as f:
+  File C:\ProgramData\anaconda3\lib\site-packages\pandas\core\resample.py:1543 in get_resampler
+    tg = TimeGrouper(**kwds)
 
-  File C:\ProgramData\anaconda3\lib\pathlib.py:1119 in open
-    return self._accessor.open(self, mode, buffering, encoding, errors,
+  File C:\ProgramData\anaconda3\lib\site-packages\pandas\core\resample.py:1613 in __init__
+    freq = to_offset(freq)
 
-FileNotFoundError: [Errno 2] No such file or directory: 'reports\\curve_comparison.html'
+  File pandas\_libs\tslibs\offsets.pyx:3891 in pandas._libs.tslibs.offsets.to_offset
+
+  File pandas\_libs\tslibs\offsets.pyx:3987 in pandas._libs.tslibs.offsets.to_offset
+
+ValueError: Invalid frequency: ME
