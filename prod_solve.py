@@ -126,7 +126,7 @@ interpolator = YieldCurveInterpolator(
     engine_params={
         "n_components": 3,
         "max_iter": 200,
-        "tol": 1e-7,
+        #"tol": 1e-7,
         "relaxation": 0.8,
     },
     buckets=BUCKETS,
@@ -183,8 +183,13 @@ missing_in_benchmark = actual_aligned.isna().sum().sum()
 if missing_in_benchmark > 0:
     print(f"В бенчмарке {missing_in_benchmark} пропусков. Они будут исключены из сравнения.")
 
-# Маска пропусков из интерполятора (для eval-периода)
-mask_aligned = interpolator.mask_.loc[common_dates] if interpolator.mask_ is not None else None
+# Маска пропусков из интерполятора для eval-периода строится отдельно,
+# потому что interpolate.mask_ хранит маску только для train
+eval_rate_matrix = pp.build_rate_matrix(df_eval, buckets=BUCKETS)
+eval_mask = pp.build_missing_mask(eval_rate_matrix)
+
+# выравниваем маску с common_dates
+mask_aligned = eval_mask.loc[common_dates] if eval_mask is not None else None
 
 
 from yield_curve import metrics
@@ -319,11 +324,10 @@ print(comparison.to_string())
 comparison.to_csv("reports/strategy_comparison.csv")
 
 
-
-
 runfile('C:/Users/mb.aliev/Desktop/PY_apps/!projects/prod_test.py', wdir='C:/Users/mb.aliev/Desktop/PY_apps/!projects')
-Request completed:  0.11034917831420898
-Request completed:  0.1580045223236084
+Reloaded modules: yield_curve.preprocessing, yield_curve.engines.empca, yield_curve.engines, yield_curve.interpolator, yield_curve.diagnostics, yield_curve.metrics, yield_curve
+Request completed:  0.056951284408569336
+Request completed:  3.980391502380371
 
 === Проверка train ===
 Размер: (7161, 4)
@@ -333,14 +337,14 @@ Request completed:  0.1580045223236084
 Валидация пройдена.
 
 === Проверка eval ===
-Размер: (133, 4)
-Период: 2026-06-01 00:00:00 — 2026-06-26 00:00:00
-Пропусков в rate: 72
-Пропусков в amount: 72
+Размер: (140, 4)
+Период: 2026-06-01 00:00:00 — 2026-06-29 00:00:00
+Пропусков в rate: 73
+Пропусков в amount: 73
 Валидация пройдена.
 
-Бенчмарк: (18, 7)
-Период: 2026-06-02 00:00:00 — 2026-06-26 00:00:00
+Бенчмарк: (19, 7)
+Период: 2026-06-02 00:00:00 — 2026-06-29 00:00:00
 
 === Обучение модели ===
 Сходимость: FAIL
@@ -351,34 +355,23 @@ Request completed:  0.1580045223236084
 Кривая на train: (1023, 7)
 Пропусков: 0
 
-Общих дат: 18
-Период сравнения: 2026-06-02 00:00:00 — 2026-06-26 00:00:00
+Общих дат: 19
+Период сравнения: 2026-06-02 00:00:00 — 2026-06-29 00:00:00
 Traceback (most recent call last):
 
   File C:\ProgramData\anaconda3\lib\site-packages\spyder_kernels\py3compat.py:356 in compat_exec
     exec(code, globals, locals)
 
-  File c:\users\mb.aliev\desktop\py_apps\!projects\prod_test.py:187
-    mask_aligned = interpolator.mask_.loc[common_dates] if interpolator.mask_ is not None else None
+  File c:\users\mb.aliev\desktop\py_apps\!projects\prod_test.py:200
+    report = metrics.compare_curves(
 
-  File C:\ProgramData\anaconda3\lib\site-packages\pandas\core\indexing.py:1073 in __getitem__
-    return self._getitem_axis(maybe_callable, axis=axis)
+  File ~\Desktop\PY_apps\!projects\yield_curve\metrics.py:726 in compare_curves
+    report["pointwise"] = pointwise_metrics(p, a, aligned_mask)
 
-  File C:\ProgramData\anaconda3\lib\site-packages\pandas\core\indexing.py:1301 in _getitem_axis
-    return self._getitem_iterable(key, axis=axis)
+  File ~\Desktop\PY_apps\!projects\yield_curve\metrics.py:228 in pointwise_metrics
+    "rmse": rmse(predicted, actual, mask),
 
-  File C:\ProgramData\anaconda3\lib\site-packages\pandas\core\indexing.py:1239 in _getitem_iterable
-    keyarr, indexer = self._get_listlike_indexer(key, axis)
+  File ~\Desktop\PY_apps\!projects\yield_curve\metrics.py:131 in rmse
+    p, a = _align_curves(predicted, actual, mask)
 
-  File C:\ProgramData\anaconda3\lib\site-packages\pandas\core\indexing.py:1432 in _get_listlike_indexer
-    keyarr, indexer = ax._get_indexer_strict(key, axis_name)
-
-  File C:\ProgramData\anaconda3\lib\site-packages\pandas\core\indexes\base.py:6070 in _get_indexer_strict
-    self._raise_if_missing(keyarr, indexer, axis_name)
-
-  File C:\ProgramData\anaconda3\lib\site-packages\pandas\core\indexes\base.py:6130 in _raise_if_missing
-    raise KeyError(f"None of [{key}] are in the [{axis_name}]")
-
-KeyError: "None of [DatetimeIndex(['2026-06-02', '2026-06-03', '2026-06-04', '2026-06-05',\n               '2026-06-08', '2026-06-09', '2026-06-10', '2026-06-11',\n               '2026-06-15', '2026-06-16', '2026-06-17', '2026-06-18',\n               '2026-06-19', '2026-06-22', '2026-06-23', '2026-06-24',\n               '2026-06-25', '2026-06-26'],\n              dtype='datetime64[ns]', name='date', freq=None)] are in the [index]"
-
-
+ValueError: too many values to unpack (expected 2)
