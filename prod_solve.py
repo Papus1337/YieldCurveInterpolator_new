@@ -62,14 +62,14 @@ df2 = """
         select [date], TERM_AVG term_bucket, spread rate
         from [LIQUIDITY].[qt].[spreads_from_auc_V2] 
         where 1 = 1
-        and [date] > '2026-06-01'
+        and [date] = '2026-06-26'
         order by [date], term_avg
 """
 df2 = DB_request(df2)
 
 
-df_train = df1[df1['date'] < '2026-06-01']
-df_eval = df1[df1['date'] >= '2026-06-01']
+df_train = df1[df1['date'] < '2026-06-26']
+df_eval = df1[df1['date'] == '2026-06-26']
 df_benchmark = df2
 
 # -------------------------------------------------------
@@ -124,8 +124,8 @@ from yield_curve import YieldCurveInterpolator
 interpolator = YieldCurveInterpolator(
     engine="empca",
     engine_params={
-        "n_components": 3,
-        "max_iter": 500,
+        "n_components": 6,
+        "max_iter": 1000,
         "tol": 1e-6,
         "relaxation": 0.8,
     },
@@ -269,7 +269,7 @@ plotting.save_figure(fig_heatmap, "reports/residuals_heatmap.html", format="html
 plotting.save_figure(fig_pnl, "reports/pnl_curve.html", format="html")
 
 # Если нужен PNG для вставки в Outlook
-plotting.save_figure(fig_compare, "reports/curve_comparison.png", format="png", scale=2)
+#plotting.save_figure(fig_compare, "reports/curve_comparison.png", format="png", scale=2)
 
 print("\nОтчёты сохранены в директорию reports/")
 
@@ -322,208 +322,3 @@ print(comparison.to_string())
 
 # Сохранение таблицы
 comparison.to_csv("reports/strategy_comparison.csv")
-
-
-
-
-runfile('C:/Users/mb.aliev/Desktop/PY_apps/!projects/prod_test.py', wdir='C:/Users/mb.aliev/Desktop/PY_apps/!projects')
-Reloaded modules: yield_curve.preprocessing, yield_curve.engines.empca, yield_curve.engines, yield_curve.interpolator, yield_curve.diagnostics, yield_curve.metrics, yield_curve, yield_curve.plotting
-Request completed:  0.2095036506652832
-Request completed:  0.2111506462097168
-
-=== Проверка train ===
-Размер: (7161, 4)
-Период: 2022-04-08 00:00:00 — 2026-05-29 00:00:00
-Пропусков в rate: 3691
-Пропусков в amount: 3691
-Валидация пройдена.
-
-=== Проверка eval ===
-Размер: (140, 4)
-Период: 2026-06-01 00:00:00 — 2026-06-29 00:00:00
-Пропусков в rate: 73
-Пропусков в amount: 73
-Валидация пройдена.
-
-Бенчмарк: (19, 7)
-Период: 2026-06-02 00:00:00 — 2026-06-29 00:00:00
-
-=== Обучение модели ===
-Сходимость: FAIL
-Итераций: 1000
-Финальная ошибка: 1.17e-04
-ВНИМАНИЕ: модель не сошлась. Увеличьте max_iter или ослабьте tolerance.
-
-Кривая на train: (1023, 7)
-Пропусков: 0
-
-Общих дат: 19
-Период сравнения: 2026-06-02 00:00:00 — 2026-06-29 00:00:00
-======================================================================
-YIELD CURVE METRICS REPORT
-======================================================================
-
-Total observations: 133
-
-[1] POINTWISE METRICS
-    rmse        : 0.000417
-    mae         : 0.000239
-    mape        : 49.1060%
-    max_error   : 0.002203
-
-[2] DIRECTIONAL ACCURACY
-    0.9302 (93.02%)
-
-[3] RANK CORRELATION (Spearman)
-    Mean: 0.8410
-    Min:  0.2000
-    Max:  1.0000
-
-[4] ECONOMIC METRICS
-    Total PnL:                -21.69
-    Annualized PnL:          -287.68
-
-[5] METRICS BY BUCKET (top 3 worst by RMSE)
-            rmse       mae        mape  max_error  directional_accuracy  mean_bias  n_obs
-bucket                                                                                   
-61      0.001065  0.000766  208.722647   0.002203                  0.75  -0.000674      5
-91      0.000603  0.000361  188.455624   0.001316                  0.75   0.000246      5
-31      0.000302  0.000232   39.787272   0.000546                  1.00   0.000032      9
-
-[6] METRICS BY DATE (top 5 worst by RMSE)
-                rmse       mae  max_error  l2_distance  cosine_similarity  n_obs
-date                                                                            
-2026-06-26  0.001147  0.000817   0.002203     0.002294           0.727355      4
-2026-06-25  0.000609  0.000439   0.001316     0.001491           0.939998      6
-2026-06-22  0.000512  0.000387   0.000744     0.001023           0.976855      4
-2026-06-17  0.000469  0.000441   0.000612     0.000812           0.990642      3
-2026-06-23  0.000429  0.000313   0.000728     0.000744           0.995184      3
-
-======================================================================
-
-=== Метрики по бакетам ===
-            rmse       mae        mape  max_error  directional_accuracy  mean_bias  n_obs
-bucket                                                                                   
-1       0.000251  0.000179    4.520187   0.000698              0.875000  -0.000066     17
-7       0.000285  0.000195   14.180142   0.000728              0.923077   0.000012     14
-14      0.000193  0.000130   39.484332   0.000496              1.000000   0.000042     12
-31      0.000302  0.000232   39.787272   0.000546              1.000000   0.000032      9
-61      0.001065  0.000766  208.722647   0.002203              0.750000  -0.000674      5
-91      0.000603  0.000361  188.455624   0.001316              0.750000   0.000246      5
-181     0.000010  0.000010    0.522118   0.000010                   NaN  -0.000010      1
-
-=== Худшие 10 дат по RMSE ===
-                rmse       mae  max_error  l2_distance  cosine_similarity  n_obs
-date                                                                            
-2026-06-26  0.001147  0.000817   0.002203     0.002294           0.727355      4
-2026-06-25  0.000609  0.000439   0.001316     0.001491           0.939998      6
-2026-06-22  0.000512  0.000387   0.000744     0.001023           0.976855      4
-2026-06-17  0.000469  0.000441   0.000612     0.000812           0.990642      3
-2026-06-23  0.000429  0.000313   0.000728     0.000744           0.995184      3
-2026-06-19  0.000336  0.000275   0.000546     0.000581           0.995865      3
-2026-06-15  0.000222  0.000167   0.000313     0.000314           0.999111      2
-2026-06-03  0.000216  0.000153   0.000367     0.000373           0.999655      3
-2026-06-18  0.000187  0.000178   0.000234     0.000264           0.999527      2
-2026-06-10  0.000182  0.000140   0.000311     0.000445           0.997975      6
-
-Направленная точность: 0.9302
-Ранговая корреляция (Spearman): 0.8410
-
-Суммарный PnL: -21.69
-Годовой PnL: -287.68
-
-
-
-
-
-Отчёты сохранены в директорию reports/
-======================================================================
-BACKTEST REPORT — MEAN_REVERSION
-======================================================================
-
-[Period]
-    Start:              2026-06-02 00:00:00
-    End:                2026-06-29 00:00:00
-    Trading days:       19
-
-[Returns]
-    Total return:           -335,909.02
-    Total return (%):           -0.4799%
-    Annualized return:          -0.0651 (-6.51%)
-    Annualized vol:              0.0029 (0.29%)
-
-[Risk-adjusted]
-    Sharpe ratio:              -22.2125
-    Sortino ratio:             -24.5175
-    Calmar ratio:              -13.5716
-    Max drawdown:               -0.0048 (-0.48%)
-    Max DD duration:                 16 days
-
-[Trading]
-    Win rate:                    0.0000 (0.00%)
-    Profit factor:               0.0000
-    Number of trades:                44
-    Avg daily turnover:   25,263,157.89
-
-[Parameters]
-    notional              : 10000000
-    transaction_cost_bps  : 5.0
-    slippage_bps          : 2.0
-    risk_free_rate        : 0.0
-    signal_lag            : 1
-    rebalance_frequency   : 1
-    n_buckets             : 7
-    initial_capital       : 70000000
-    zscore_threshold      : 1.0
-    lookback              : 20
-
-======================================================================
-Temporary dictory couldn't be removed manually.
-Traceback (most recent call last):
-
-  File pandas\_libs\tslibs\offsets.pyx:3878 in pandas._libs.tslibs.offsets._get_offset
-
-KeyError: 'ME'
-
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-
-  File pandas\_libs\tslibs\offsets.pyx:3979 in pandas._libs.tslibs.offsets.to_offset
-
-  File pandas\_libs\tslibs\offsets.pyx:3884 in pandas._libs.tslibs.offsets._get_offset
-
-ValueError: Invalid frequency: ME
-
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-
-  File C:\ProgramData\anaconda3\lib\site-packages\spyder_kernels\py3compat.py:356 in compat_exec
-    exec(code, globals, locals)
-
-  File c:\users\mb.aliev\desktop\py_apps\!projects\prod_test.py:303
-    fig_bt = plot_backtest_dashboard(result)
-
-  File ~\Desktop\PY_apps\!projects\yield_curve\backtest.py:1161 in plot_backtest_dashboard
-    monthly = result.equity_curve.resample("ME").last().pct_change().dropna() * 100
-
-  File C:\ProgramData\anaconda3\lib\site-packages\pandas\core\series.py:5872 in resample
-    return super().resample(
-
-  File C:\ProgramData\anaconda3\lib\site-packages\pandas\core\generic.py:8858 in resample
-    return get_resampler(
-
-  File C:\ProgramData\anaconda3\lib\site-packages\pandas\core\resample.py:1543 in get_resampler
-    tg = TimeGrouper(**kwds)
-
-  File C:\ProgramData\anaconda3\lib\site-packages\pandas\core\resample.py:1613 in __init__
-    freq = to_offset(freq)
-
-  File pandas\_libs\tslibs\offsets.pyx:3891 in pandas._libs.tslibs.offsets.to_offset
-
-  File pandas\_libs\tslibs\offsets.pyx:3987 in pandas._libs.tslibs.offsets.to_offset
-
-ValueError: Invalid frequency: ME
